@@ -15,15 +15,21 @@
  */
 package com.oreilly.springdata.rest;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.apache.commons.dbcp.BasicDataSource;
+import org.cloudfoundry.runtime.env.CloudEnvironment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
@@ -41,20 +47,57 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ComponentScan
 @EnableJpaRepositories
 @EnableTransactionManagement
+@PropertySource("classpath:/META-INF/spring/database.properties")
 class ApplicationConfig {
 
-	/**
-	 * Bootstraps an in-memory HSQL database.
-	 * 
-	 * @return
-	 * @see http 
-	 *      ://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/jdbc.html#jdbc-embedded-database
-	 *      -support
-	 */
+	
+	String host;
+	String username;
+	String password;
+	String port;
+	String database;
+	
+	@Bean
+    public CloudEnvironment cloudEnvironment() {
+        return new CloudEnvironment();
+    }
+	 
 	@Bean
 	public DataSource dataSource() {
-		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-		return builder.setType(EmbeddedDatabaseType.HSQL).build();
+	
+		List<Map<String, Object>>  services = this.cloudEnvironment().getServices();
+		Iterator<Map<String, Object>> servicesIter = services.iterator();
+		
+		
+		while(servicesIter.hasNext()){
+			Map<String, Object> map = servicesIter.next();
+			Set<String> keys = map.keySet();
+			
+			for(String key : keys){
+				
+				if(key.equals("credentials")){
+
+					System.out.println("key" +" - value: "+map.get(key));
+
+					Map<String, Object> credentials = (Map<String, Object>) map.get(key);
+					
+					host = (String) credentials.get("host");
+					username = (String) credentials.get("username");
+					password = (String) credentials.get("password");
+					port = (String) credentials.get("port");
+					database = (String) credentials.get("database");
+					
+				}
+			}
+		}
+		
+		DataSource ds = new org.apache.commons.dbcp.BasicDataSource();
+		  ((BasicDataSource) ds).setDriverClassName("org.postgresql.Driver");
+		  ((BasicDataSource) ds).setUrl("jdbc:postgresql://" +host + ":" + port +"/"+database);
+		  ((BasicDataSource) ds).setUsername(username);
+		  ((BasicDataSource) ds).setPassword(password);
+		  return ds;
+		
 	}
 
 	/**
@@ -67,7 +110,7 @@ class ApplicationConfig {
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-		vendorAdapter.setDatabase(Database.HSQL);
+		vendorAdapter.setDatabase(Database.POSTGRESQL);
 		vendorAdapter.setGenerateDdl(true);
 
 		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
