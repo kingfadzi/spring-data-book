@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ComponentScan
 @EnableJpaRepositories
 @EnableTransactionManagement
-@PropertySource("classpath:/META-INF/spring/database.properties")
+//@PropertySource("classpath:/META-INF/spring/database.properties")
 class ApplicationConfig {
 
 	
