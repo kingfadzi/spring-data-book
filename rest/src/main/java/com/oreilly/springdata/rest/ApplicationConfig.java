@@ -28,7 +28,6 @@ import org.cloudfoundry.runtime.env.CloudEnvironment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -96,6 +95,11 @@ class ApplicationConfig {
 		  ((BasicDataSource) ds).setUrl("jdbc:postgresql://" +host + ":" + port +"/"+database);
 		  ((BasicDataSource) ds).setUsername(username);
 		  ((BasicDataSource) ds).setPassword(password);
+		  
+		  ((BasicDataSource) ds).setInitialSize(5);
+		  ((BasicDataSource) ds).setMaxActive(10);
+		  ((BasicDataSource) ds).setMaxIdle(2);
+		  
 		  return ds;
 		
 	}
