@@ -73,10 +73,10 @@ class ApplicationConfig {
 			Set<String> keys = map.keySet();
 			
 			for(String key : keys){
+
+				System.out.println("key" +" - value: "+map.get(key));
 				
 				if(key.equals("credentials")){
-
-					System.out.println("key" +" - value: "+map.get(key));
 
 					Map<String, Object> credentials = (Map<String, Object>) map.get(key);
 					
